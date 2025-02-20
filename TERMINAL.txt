@@ -1,0 +1,19 @@
+Laravel:
+>>> composer global require laravel/installer
+>>> laravel new Firese-Laravel
+
+Firebase:
+>>> composer require kreait/laravel-firebase
+(اذا واجهت مشكلة في هذه الخطوة)
+ 1. open PHP.ini in your xampp
+ 2. serach about (extension=sodium)
+ 3. if find it-> remove the ;
+    else-> put it in the end file 
+>>> php artisan vendor:publish --provider="Kreait\Laravel\Firebase\ServiceProvider" --tag=config
+
+TailwindCss:
+>>> npm install tailwindcss @tailwindcss/vite
+2. put import tailwindcss from '@tailwindcss/vite' in vite.config.ts
+3. put @import "tailwindcss";
+@source "../views"; in '/resources/css/app.css'
+4. put @vite('resources/css/app.css') in head layout
