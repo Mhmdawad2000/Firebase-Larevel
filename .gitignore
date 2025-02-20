@@ -22,4 +22,3 @@ yarn-error.log
 /.vscode
 /.zed
 /laravel-firebase-adminsdk.json
-/app/Http/Controllers/laravel-firebase-adminsdk.json

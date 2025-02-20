@@ -2,29 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use Kreait\Firebase\Factory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use App\Services\FirebaseService;
 use Illuminate\Support\Facades\Hash;
 
 class FirebaseController extends Controller
 {
     protected $database;
 
-    // تعديل الـ Constructor
-    public function __construct()
-    {
-        $firebase = (new Factory)
-            ->withServiceAccount(base_path(env('FIREBASE_CREDENTIALS')))
-            ->withDatabaseUri(env('FIREBASE_DATABASE_URL'));
 
-        $this->database = $firebase->createDatabase();
+    public function __construct(FirebaseService $firebaseService)
+    {
+        // firebase connection
+        $this->database = $firebaseService->getDatabase();
     }
+
 
     // عرض جميع المستخدمين
     public function index()
     {
-        $ref = $this->database->getReference('users');
-        $users = $ref->getValue();
+        $users = Cache::remember('users', 60, function () {
+            return $this->database->getReference('users')->getValue();
+        });
         return view('users.index', ['users' => $users]);
     }
 
@@ -46,13 +46,15 @@ class FirebaseController extends Controller
         ]);
 
         //2. التحقق من البريد الإلكتروني إذا كان مسجلاً بالفعل
-        $usersRef = $this->database->getReference('users')
-            ->orderByChild('email')
-            ->equalTo($data['email'])
-            ->getValue();
-        if (!empty($usersRef)) {
+        $existingEmails = Cache::remember('users_emails', 60, function () {
+            $users = $this->database->getReference('users')->getValue();
+            return array_column($users ?? [], 'email');
+        });
+
+        if (in_array($data['email'], $existingEmails)) {
             return view('users.create')->with('error', 'The email already token');
         }
+
 
         //3. تشفير كلمة المرور
         $data['password'] = Hash::make($data['password']);
@@ -97,17 +99,18 @@ class FirebaseController extends Controller
 
     // حدف مستخدم
 
-    public function delete($id) {
-        
-    //  التحقق مما إذا كان المستخدم موجودًا
-    $userRef = $this->database->getReference("users/{$id}")->getValue();
-    if (!$userRef) {
+    public function delete($id)
+    {
+
+        //  التحقق مما إذا كان المستخدم موجودًا
+        $userRef = $this->database->getReference("users/{$id}")->getValue();
+        if (!$userRef) {
+            return redirect()->route('users');
+        }
+
+        //  حذف المستخدم
+        $this->database->getReference("users/{$id}")->remove();
+
         return redirect()->route('users');
-    }
-
-    //  حذف المستخدم
-    $this->database->getReference("users/{$id}")->remove();
-
-    return redirect()->route('users');
     }
 }
