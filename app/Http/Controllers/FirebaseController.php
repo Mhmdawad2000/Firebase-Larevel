@@ -4,21 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use App\Services\FirebaseService;
+use Kreait\Firebase\Database;
 use Illuminate\Support\Facades\Hash;
 
 class FirebaseController extends Controller
 {
     protected $database;
 
-
-    public function __construct(FirebaseService $firebaseService)
+    // firebase connection
+    public function __construct(Database $database)
     {
-        // firebase connection
-        $this->database = $firebaseService->getDatabase();
+        $this->database = $database;
     }
 
-
+    //-- Index--//
     // عرض جميع المستخدمين
     public function index()
     {
@@ -28,12 +27,13 @@ class FirebaseController extends Controller
         return view('users.index', ['users' => $users]);
     }
 
+
+    //-- Create--//
     // عرض نموذج إضافة مستخدم
     public function create()
     {
         return view('users.create');
     }
-
     // تخزين مستخدم جديد مع التحقق من البريد الإلكتروني
     public function store(Request $request)
     {
@@ -67,9 +67,14 @@ class FirebaseController extends Controller
             'password' => $data['password'],
         ]);
 
+        //5. حذف الكاش وإعادة تحميل البيانات
+        Cache::forget('users');
+        Cache::forget('users_emails');
         return redirect()->route('users');
     }
 
+
+    //-- Update--//
     // عرض نموذج تعديل مستخدم
     public function update($id)
     {
@@ -79,37 +84,42 @@ class FirebaseController extends Controller
     // تعديل  المستخدم
     public function edit(Request $request, $id)
     {
+        //1. التحقق من البيانات المستلمة
         $data = $request->validate([
             'firstName' => 'required|regex:/^[\p{Arabic}a-zA-Z\s]+$/u|min:3|max:20',
             'lastName' => 'required|regex:/^[\p{Arabic}a-zA-Z\s]+$/u|min:3|max:20',
         ]);
-        $user = $this->database->getReference("users/{$id}")->getValue();
+        $userRef = $this->database->getReference("users/{$id}");
+        $user = $userRef->getValue();
+        //2. التحقق من ان المستخدم موجود
         if (!$user) {
-            return redirect()->route('users')->with('error', 'User not founded');
+            return redirect()->route('users')->with('error', 'User not found');
         }
-        $user = $this->database->getReference("users/{$id}")->update(
-            [
-                'firstName' => ucwords($data['firstName']),
-                'lastName' => ucwords($data['lastName']),
-            ]
-        );
-        return redirect()->route('users')->with('msg', 'User updeted');;
+        //3. تعديل المستخدم اذا وجد
+        $userRef->update([
+            'firstName' => ucwords($request->input('firstName')),
+            'lastName' => ucwords($request->input('lastName')),
+        ]);
+        //4.  حذف الكاش وإعادة تحميل البيانات
+        Cache::forget('users');
+
+        return redirect()->route('users')->with('msg', 'User updated');
     }
 
 
+    //-- Delete--//
     // حدف مستخدم
-
     public function delete($id)
     {
-
-        //  التحقق مما إذا كان المستخدم موجودًا
-        $userRef = $this->database->getReference("users/{$id}")->getValue();
-        if (!$userRef) {
+        //1. التحقق اذا المستخدم موجود
+        $userRef = $this->database->getReference("users/{$id}");
+        if (!$userRef->getValue()) {
             return redirect()->route('users');
         }
-
-        //  حذف المستخدم
-        $this->database->getReference("users/{$id}")->remove();
+        //2. حذف المستخدم ان وجد
+        $userRef->remove();
+        // 3 حذف الكاش لضمان التحديث الفوري
+        Cache::forget('users');
 
         return redirect()->route('users');
     }
