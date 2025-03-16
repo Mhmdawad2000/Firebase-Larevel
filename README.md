@@ -1,25 +1,11 @@
-@extends('layouts.app')
-@section('content')
-    <!-- component -->
-    <div class="flex justify-center flex-col m-4">
+<div class="flex justify-center flex-col m-4">
         <div class="rounded-lg flex justify-between mx-4 container-md bg-gray-100 p-6">
             <h1 class="text-black text-2xl">User List From Firebase</h1>
             <a href="{{ route('user-create') }}" class="hovre:bg-blue-800 rounded-xl btn bg-blue-600 px-6 py-3">Add User</a>
         </div>
 
-        @if (isset($msg))
-            <div class="rounded-lg  mx-4 container-md bg-gray-100 p-6">
-                <div class="alert alert-info text-green-600">{{ $msg }}</div>
-            </div>
-        @endif
-        @if (isset($error))
-            <div class="rounded-lg  mx-4 container-md bg-gray-100 p-6">
-                <div class="alert alert-danger text-red-600">{{ $error }}</div>
-            </div>
-        @endif
 
-
-        <div class="flex justify-center shadow-md">
+<div class="flex justify-center shadow-md">
             <table class="pt-2 w-[60%] bg-white text-left text-sm text-gray-500 mt-10">
                 <thead class="bg-gray-400">
                     <tr>
@@ -78,4 +64,4 @@
             </table>
         </div>
     </div>
-@endsection
+    
