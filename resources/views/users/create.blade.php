@@ -8,6 +8,9 @@
             <a href="{{ route('users') }}" class="btn bg-red-700 rounded-xl px-6 py-3 text-white">Back</a>
         </div>
         <h1 class="text-xl font-bold text-center text-gray-700 dark:text-gray-200 mb-8">Welcome to Laravel-Firebase</h1>
+        @if (session('error'))
+            <div class="alert alert-danger text-red-600">{{ session('error') }}</div>
+        @endif
         <form action="{{ route('user-store') }}" method="POST" class="w-full flex flex-col gap-4">
             @csrf
             <div class="flex items-start flex-col justify-start">

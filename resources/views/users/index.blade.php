@@ -7,16 +7,17 @@
             <a href="{{ route('user-create') }}" class="hovre:bg-blue-800 rounded-xl btn bg-blue-600 px-6 py-3">Add User</a>
         </div>
 
-        @if (isset($msg))
+        @if (session('msg'))
             <div class="rounded-lg  mx-4 container-md bg-gray-100 p-6">
-                <div class="alert alert-info text-green-600">{{ $msg }}</div>
+                <div class="alert alert-info text-green-600">{{ session('msg') }}</div>
             </div>
         @endif
-        @if (isset($error))
+        @if (session('error'))
             <div class="rounded-lg  mx-4 container-md bg-gray-100 p-6">
-                <div class="alert alert-danger text-red-600">{{ $error }}</div>
+                <div class="alert alert-danger text-red-600">{{ session('error') }}</div>
             </div>
         @endif
+
 
 
         <div class="flex justify-center shadow-md">
